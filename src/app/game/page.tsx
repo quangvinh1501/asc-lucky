@@ -89,9 +89,13 @@ function GameContent() {
       const history: WinnerRecord[] = JSON.parse(localStorage.getItem("lucky_history") || "[]");
       const alreadyWon = new Set(history.flatMap((h) => h.winners.map((w) => w[cfg.idColumn])));
       const pool = emp.filter((e) => !alreadyWon.has(e[cfg.idColumn]));
-      const round = cfg.rounds?.find((r) => r.id === msg.roundId);
+
+      // pick next round that hasn't been drawn yet
+      const doneRoundLabels = new Set(history.map((h) => h.roundLabel));
+      const round = cfg.rounds?.find((r) => !doneRoundLabels.has(r.label)) || cfg.rounds?.[0];
       if (!round || pool.length === 0) return;
 
+      const dur = parseInt(localStorage.getItem("lucky_duration") || "10");
       const count = Math.min(round.count, pool.length);
       const picked = [...pool].sort(() => Math.random() - 0.5).slice(0, count);
 
@@ -101,7 +105,7 @@ function GameContent() {
       setTimeout(() => {
         stopSpin(picked, round.label, true);
         send({ type: "DRAW_RESULT", roundId: round.id, roundLabel: round.label, winners: picked });
-      }, spinDuration * 1000);
+      }, dur * 1000);
     }
 
     if (msg.type === "DRAW_RESULT") stopSpin(msg.winners, msg.roundLabel, false);
