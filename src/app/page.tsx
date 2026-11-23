@@ -24,7 +24,6 @@ function StartContent() {
         🚀 Start
       </button>
 
-      <a href="/admin" className="text-yellow-500 underline text-sm">Admin</a>
     </div>
   );
 }
