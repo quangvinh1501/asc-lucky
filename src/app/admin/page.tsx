@@ -40,6 +40,7 @@ function AdminContent() {
   const [mascot, setMascot] = useState("");
   const [mascotSize, setMascotSize] = useState(64);
   const [spinDuration, setSpinDuration] = useState(10);
+  const [selectedRoundId, setSelectedRoundId] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const channel = typeof window !== "undefined" ? localStorage.getItem("lucky_channel") : "";
 
@@ -71,6 +72,8 @@ function AdminContent() {
     if (ms) setMascotSize(parseInt(ms));
     const dur = localStorage.getItem("lucky_duration");
     if (dur) setSpinDuration(parseInt(dur));
+    const sr = localStorage.getItem("lucky_selected_round");
+    if (sr) setSelectedRoundId(sr);
   }, []);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,6 +126,7 @@ function AdminContent() {
     localStorage.setItem("lucky_mascot", mascot.trim());
     localStorage.setItem("lucky_mascot_size", mascotSize.toString());
     localStorage.setItem("lucky_duration", spinDuration.toString());
+    localStorage.setItem("lucky_selected_round", selectedRoundId);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -290,6 +294,23 @@ function AdminContent() {
         )}
         {!bgImage && <p className="text-gray-500 text-sm">Leave empty to use the default background color.</p>}
       </section>
+
+      {/* Select round to draw */}
+      {config.rounds.length > 0 && (
+        <section className="bg-gray-800 rounded-2xl p-6 flex flex-col gap-4">
+          <h2 className="text-xl font-bold text-yellow-300">🎯 Round to Draw Next</h2>
+          <select
+            value={selectedRoundId}
+            onChange={(e) => setSelectedRoundId(e.target.value)}
+            className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 outline-none focus:border-yellow-400"
+          >
+            <option value="">-- Auto (next undrawn round) --</option>
+            {config.rounds.map((r) => (
+              <option key={r.id} value={r.id}>{r.label} ({r.count} winner{r.count > 1 ? "s" : ""})</option>
+            ))}
+          </select>
+        </section>
+      )}
 
       <button onClick={saveConfig} className={`font-extrabold text-lg py-3 rounded-xl transition ${saved ? "bg-green-500 text-white" : "bg-yellow-400 hover:bg-yellow-300 text-gray-900"}`}>
         {saved ? "✅ Saved!" : "💾 Save Configuration"}

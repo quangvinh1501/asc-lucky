@@ -90,9 +90,12 @@ function GameContent() {
       const alreadyWon = new Set(history.flatMap((h) => h.winners.map((w) => w[cfg.idColumn])));
       const pool = emp.filter((e) => !alreadyWon.has(e[cfg.idColumn]));
 
-      // pick next round that hasn't been drawn yet
+      // pick round: use selected from admin, or auto next undrawn
       const doneRoundLabels = new Set(history.map((h) => h.roundLabel));
-      const round = cfg.rounds?.find((r) => !doneRoundLabels.has(r.label)) || cfg.rounds?.[0];
+      const selectedRoundId = localStorage.getItem("lucky_selected_round") || "";
+      const round = selectedRoundId
+        ? cfg.rounds?.find((r) => r.id === selectedRoundId)
+        : cfg.rounds?.find((r) => !doneRoundLabels.has(r.label)) || cfg.rounds?.[0];
       if (!round || pool.length === 0) return;
 
       const dur = parseInt(localStorage.getItem("lucky_duration") || "10");
