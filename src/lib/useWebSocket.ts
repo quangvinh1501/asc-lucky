@@ -27,14 +27,13 @@ export function useWebSocket(
   }, [channel]);
 
   const send = useCallback((msg: WSMessage) => {
-    const channel = localStorage.getItem("lucky_channel");
     if (!channel) return;
     fetch("/api/pusher", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ channel, event: "message", data: msg }),
     });
-  }, []);
+  }, [channel]);
 
   return { send };
 }
