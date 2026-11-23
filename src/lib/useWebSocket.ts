@@ -1,33 +1,39 @@
 "use client";
 import { useEffect, useRef, useCallback } from "react";
+import Pusher from "pusher-js";
 import type { WSMessage } from "./types";
 
 export function useWebSocket(
   channel: string | null,
   onMessage: (msg: WSMessage) => void
 ) {
-  const wsRef = useRef<WebSocket | null>(null);
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
 
   useEffect(() => {
     if (!channel) return;
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${protocol}://localhost:3000/ws?channel=${encodeURIComponent(channel)}`);
-    wsRef.current = ws;
-    ws.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data) as WSMessage;
-        onMessageRef.current(msg);
-      } catch {}
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
+    const ch = pusher.subscribe(`lucky-${channel}`);
+    ch.bind("message", (data: WSMessage) => {
+      onMessageRef.current(data);
+    });
+    return () => {
+      ch.unbind_all();
+      pusher.unsubscribe(`lucky-${channel}`);
+      pusher.disconnect();
     };
-    return () => ws.close();
   }, [channel]);
 
   const send = useCallback((msg: WSMessage) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
-    }
+    const channel = localStorage.getItem("lucky_channel");
+    if (!channel) return;
+    fetch("/api/pusher", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channel, event: "message", data: msg }),
+    });
   }, []);
 
   return { send };
