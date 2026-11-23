@@ -6,6 +6,22 @@ import ChannelGate from "@/components/ChannelGate";
 import { useWebSocket } from "@/lib/useWebSocket";
 import type { AppConfig, Employee, RoundConfig, WinnerRecord } from "@/lib/types";
 
+const ANIMAL_EMOJI: Record<string, string> = {
+  rat: "🐭", mouse: "🐭", ox: "🐮", cow: "🐮", buffalo: "🐃",
+  tiger: "🐯", rabbit: "🐰", bunny: "🐰", dragon: "🐲",
+  snake: "🐍", horse: "🐴", goat: "🐐", sheep: "🐑", ram: "🐏",
+  monkey: "🐵", rooster: "🐓", chicken: "🐔", dog: "🐶",
+  pig: "🐷", boar: "🐗", cat: "🐱", bear: "🐻", panda: "🐼",
+  fox: "🦊", wolf: "🐺", lion: "🦁", elephant: "🐘", deer: "🦌",
+  unicorn: "🦄", penguin: "🐧", duck: "🦆", eagle: "🦅", owl: "🦉",
+  fish: "🐟", shark: "🦈", dolphin: "🐬", whale: "🐳", turtle: "🐢",
+};
+
+function getAnimalEmoji(name: string): string {
+  if (!name.trim()) return "👤";
+  return ANIMAL_EMOJI[name.trim().toLowerCase()] || "🐾";
+}
+
 const DEFAULT_CONFIG: AppConfig = {
   nameColumn: "",
   idColumn: "",
@@ -21,6 +37,9 @@ function AdminContent() {
   const [saved, setSaved] = useState(false);
   const [bgImage, setBgImage] = useState("");
   const [eventTitle, setEventTitle] = useState("");
+  const [mascot, setMascot] = useState("");
+  const [mascotSize, setMascotSize] = useState(64);
+  const [spinDuration, setSpinDuration] = useState(10);
   const fileRef = useRef<HTMLInputElement>(null);
   const channel = typeof window !== "undefined" ? localStorage.getItem("lucky_channel") : "";
 
@@ -46,6 +65,12 @@ function AdminContent() {
     if (bg) setBgImage(bg);
     const title = localStorage.getItem("lucky_title");
     if (title) setEventTitle(title);
+    const m = localStorage.getItem("lucky_mascot");
+    if (m) setMascot(m);
+    const ms = localStorage.getItem("lucky_mascot_size");
+    if (ms) setMascotSize(parseInt(ms));
+    const dur = localStorage.getItem("lucky_duration");
+    if (dur) setSpinDuration(parseInt(dur));
   }, []);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +120,9 @@ function AdminContent() {
     localStorage.setItem("lucky_config", JSON.stringify(config));
     localStorage.setItem("lucky_bg", bgImage.trim());
     localStorage.setItem("lucky_title", eventTitle.trim());
+    localStorage.setItem("lucky_mascot", mascot.trim());
+    localStorage.setItem("lucky_mascot_size", mascotSize.toString());
+    localStorage.setItem("lucky_duration", spinDuration.toString());
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -206,20 +234,43 @@ function AdminContent() {
         </button>
       </section>
 
-      {/* Background image */}
+      {/* Event Title */}
       <section className="bg-gray-800 rounded-2xl p-6 flex flex-col gap-4">
         <h2 className="text-xl font-bold text-yellow-300">🎉 Event Title</h2>
-        <input
-          type="text"
-          value={eventTitle}
-          onChange={(e) => setEventTitle(e.target.value)}
+        <input type="text" value={eventTitle} onChange={(e) => setEventTitle(e.target.value)}
           placeholder="e.g. ASC Year End Party 2025"
-          className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 outline-none focus:border-yellow-400"
-        />
+          className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 outline-none focus:border-yellow-400" />
         {!eventTitle && <p className="text-gray-500 text-sm">Leave empty to use default: LUCKY DRAW</p>}
       </section>
 
-      {/* Background image */}
+      {/* Mascot */}
+      <section className="bg-gray-800 rounded-2xl p-6 flex flex-col gap-4">
+        <h2 className="text-xl font-bold text-yellow-300">🐾 Mascot Animal</h2>
+        <input type="text" value={mascot} onChange={(e) => setMascot(e.target.value)}
+          placeholder="e.g. goat, dragon, cat, dog, rabbit..."
+          className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 outline-none focus:border-yellow-400" />
+        <p className="text-gray-400 text-sm">
+          Preview: <span style={{ fontSize: mascotSize }}>{getAnimalEmoji(mascot)}</span>
+          {!mascot && <span className="text-gray-500"> — Leave empty to use default person icon</span>}
+        </p>
+        <div className="flex items-center gap-3">
+          <label className="text-gray-400 text-sm">Size (px):</label>
+          <input type="number" min={16} max={200} value={mascotSize}
+            onChange={(e) => setMascotSize(parseInt(e.target.value) || 64)}
+            className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 outline-none focus:border-yellow-400 w-24 text-center" />
+        </div>
+      </section>
+
+      {/* Spin duration */}
+      <section className="bg-gray-800 rounded-2xl p-6 flex flex-col gap-4">
+        <h2 className="text-xl font-bold text-yellow-300">⏱️ Spin Duration</h2>
+        <div className="flex items-center gap-3">
+          <input type="number" min={3} max={60} value={spinDuration}
+            onChange={(e) => setSpinDuration(parseInt(e.target.value) || 10)}
+            className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 outline-none focus:border-yellow-400 w-24 text-center text-lg" />
+          <span className="text-gray-400">seconds</span>
+        </div>
+      </section>
       <section className="bg-gray-800 rounded-2xl p-6 flex flex-col gap-4">
         <h2 className="text-xl font-bold text-yellow-300">🖼️ Game Screen Background</h2>
         <div className="flex gap-3 items-center flex-wrap">

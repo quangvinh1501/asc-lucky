@@ -20,6 +20,9 @@ function GameContent() {
 
   const [bgImage, setBgImage] = useState("");
   const [eventTitle, setEventTitle] = useState("");
+  const [mascot, setMascot] = useState("");
+  const [mascotSize, setMascotSize] = useState(64);
+  const [spinDuration, setSpinDuration] = useState(10);
 
   useEffect(() => {
     const cfg = localStorage.getItem("lucky_config");
@@ -30,6 +33,12 @@ function GameContent() {
     if (bg) setBgImage(bg);
     const title = localStorage.getItem("lucky_title");
     if (title) setEventTitle(title);
+    const m = localStorage.getItem("lucky_mascot");
+    if (m) setMascot(m);
+    const ms = localStorage.getItem("lucky_mascot_size");
+    if (ms) setMascotSize(parseInt(ms));
+    const dur = localStorage.getItem("lucky_duration");
+    if (dur) setSpinDuration(parseInt(dur));
   }, []);
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
@@ -92,7 +101,7 @@ function GameContent() {
       setTimeout(() => {
         stopSpin(picked, round.label, true);
         send({ type: "DRAW_RESULT", roundId: round.id, roundLabel: round.label, winners: picked });
-      }, 10000);
+      }, spinDuration * 1000);
     }
 
     if (msg.type === "DRAW_RESULT") stopSpin(msg.winners, msg.roundLabel, false);
@@ -136,6 +145,8 @@ function GameContent() {
               spinning={spinning}
               currentTarget={currentTarget}
               winners={winners}
+              mascot={mascot}
+              mascotSize={mascotSize}
             />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <ThanTai size={180} spinning={spinning} />

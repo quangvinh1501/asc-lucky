@@ -8,6 +8,24 @@ interface Props {
   spinning: boolean;
   currentTarget: Employee | null;
   winners: Employee[];
+  mascot?: string;
+  mascotSize?: number;
+}
+
+const ANIMAL_EMOJI: Record<string, string> = {
+  rat: "🐭", mouse: "🐭", ox: "🐮", cow: "🐮", buffalo: "🐃",
+  tiger: "🐯", rabbit: "🐰", bunny: "🐰", dragon: "🐲",
+  snake: "🐍", horse: "🐴", goat: "🐐", sheep: "🐑", ram: "🐏",
+  monkey: "🐵", rooster: "🐓", chicken: "🐔", dog: "🐶",
+  pig: "🐷", boar: "🐗", cat: "🐱", bear: "🐻", panda: "🐼",
+  fox: "🦊", wolf: "🐺", lion: "🦁", elephant: "🐘", deer: "🦌",
+  unicorn: "🦄", penguin: "🐧", duck: "🦆", eagle: "🦅", owl: "🦉",
+  fish: "🐟", shark: "🦈", dolphin: "🐬", whale: "🐳", turtle: "🐢",
+};
+
+function getEmoji(mascot?: string): string {
+  if (!mascot?.trim()) return "👤";
+  return ANIMAL_EMOJI[mascot.trim().toLowerCase()] || "🐾";
 }
 
 interface Particle {
@@ -24,7 +42,7 @@ interface Particle {
 
 const COLORS = ["#f59e0b","#ef4444","#3b82f6","#10b981","#8b5cf6","#f97316","#06b6d4","#ec4899"];
 
-export default function LuckyCanvas({ employees, config, spinning, currentTarget, winners }: Props) {
+export default function LuckyCanvas({ employees, config, spinning, currentTarget, winners, mascot, mascotSize = 64 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef({
     particles: [] as Particle[],
@@ -33,6 +51,8 @@ export default function LuckyCanvas({ employees, config, spinning, currentTarget
     currentTarget,
     winners,
     config,
+    emoji: getEmoji(mascot),
+    mascotSize,
   });
 
   useEffect(() => {
@@ -40,12 +60,14 @@ export default function LuckyCanvas({ employees, config, spinning, currentTarget
     s.spinning = spinning;
     s.winners = winners;
     s.config = config;
+    s.emoji = getEmoji(mascot);
+    s.mascotSize = mascotSize ?? 64;
     if (currentTarget) {
       s.currentTarget = currentTarget;
       const p = s.particles.find(p => p.emp[config.idColumn] === currentTarget[config.idColumn]);
       if (p) { p.popped = true; p.popTimer = 20; }
     }
-  }, [spinning, currentTarget, winners, config]);
+  }, [spinning, currentTarget, winners, config, mascot]);
 
   useEffect(() => {
     if (!employees.length) return;
@@ -79,8 +101,9 @@ export default function LuckyCanvas({ employees, config, spinning, currentTarget
     const drawPerson = (
       ctx: CanvasRenderingContext2D,
       x: number, y: number, scale: number,
-      color: string, name: string, empId: string,
-      dimmed: boolean, popped: boolean
+      _color: string, empId: string, name: string,
+      dimmed: boolean, popped: boolean,
+      emoji: string, fontSize: number
     ) => {
       ctx.save();
       ctx.translate(x, y);
@@ -88,60 +111,23 @@ export default function LuckyCanvas({ employees, config, spinning, currentTarget
       ctx.globalAlpha = dimmed ? 0.2 : 1;
       if (popped) { ctx.shadowColor = "#fbbf24"; ctx.shadowBlur = 24; }
 
-      // body
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.roundRect(-9, 2, 18, 28, 4);
-      ctx.fill();
-
-      // head
-      ctx.fillStyle = "#fde68a";
-      ctx.beginPath();
-      ctx.arc(0, -4, 10, 0, Math.PI * 2);
-      ctx.fill();
-
-      // eyes
-      ctx.fillStyle = "#1f2937";
-      ctx.beginPath();
-      ctx.arc(-3, -5, 1.5, 0, Math.PI * 2);
-      ctx.arc(3, -5, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // smile
-      ctx.strokeStyle = "#1f2937";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(0, -2, 4, 0.2, Math.PI - 0.2);
-      ctx.stroke();
-
-      // legs
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(-4, 30); ctx.lineTo(-6, 44);
-      ctx.moveTo(4, 30); ctx.lineTo(6, 44);
-      ctx.stroke();
-
-      // arms
-      ctx.beginPath();
-      ctx.moveTo(-9, 10); ctx.lineTo(-18, 20);
-      ctx.moveTo(9, 10); ctx.lineTo(18, 20);
-      ctx.stroke();
+      ctx.font = `${fontSize}px serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(emoji, 0, 0);
 
       ctx.shadowBlur = 0;
 
-      // emp id above head
-      ctx.fillStyle = popped ? "#fbbf24" : "#d1d5db";
-      ctx.font = `bold ${popped ? 11 : 9}px monospace`;
+      ctx.fillStyle = popped ? "#fbbf24" : "#9ca3af";
+      ctx.font = `bold ${popped ? 12 : 9}px monospace`;
       ctx.textAlign = "center";
-      ctx.fillText(empId, 0, -18);
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(empId, 0, -(fontSize / 2 + 10));
 
-      // name when popped/winner
       if (popped) {
-        ctx.fillStyle = "#fbbf24";
-        ctx.font = "bold 11px sans-serif";
-        ctx.fillText(name.length > 14 ? name.slice(0, 13) + "…" : name, 0, 60);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillText(name.length > 16 ? name.slice(0, 15) + "…" : name, 0, fontSize / 2 + 16);
       }
 
       ctx.restore();
@@ -188,11 +174,20 @@ export default function LuckyCanvas({ employees, config, spinning, currentTarget
         const py = cy + Math.sin(p.angle) * p.radius + bob;
         const isWinner = winnerIds.has(p.emp[s.config.idColumn]);
 
+        const empId = p.emp[s.config.idColumn] || "";
+        // if nameColumn same as idColumn or empty, pick first other column
+        const nameCol = (s.config.nameColumn && s.config.nameColumn !== s.config.idColumn)
+          ? s.config.nameColumn
+          : Object.keys(p.emp).find(k => k !== s.config.idColumn) || s.config.idColumn;
+        const name = p.emp[nameCol] || "";
+
         drawPerson(ctx, px, py, p.scale, p.color,
-          p.emp[s.config.nameColumn] || "",
-          p.emp[s.config.idColumn] || "",
+          empId,
+          name,
           hasWinners && !isWinner,
-          p.popped || isWinner
+          p.popped || isWinner,
+          s.emoji,
+          s.mascotSize
         );
       }
 
