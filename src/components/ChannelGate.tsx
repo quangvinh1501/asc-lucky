@@ -26,10 +26,10 @@ export default function ChannelGate({ children }: { children: React.ReactNode })
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="bg-gray-800 p-8 rounded-2xl shadow-xl flex flex-col gap-4 w-80">
-          <h2 className="text-white text-xl font-bold text-center">Nhập Channel Name</h2>
+          <h2 className="text-white text-xl font-bold text-center">Enter Channel Name</h2>
           <input
             className="rounded-lg px-4 py-2 bg-gray-700 text-white outline-none border border-gray-600 focus:border-yellow-400"
-            placeholder="VD: lucky-2025"
+            placeholder="e.g. lucky-2025"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && confirm()}
@@ -38,7 +38,7 @@ export default function ChannelGate({ children }: { children: React.ReactNode })
             onClick={confirm}
             className="bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-bold py-2 rounded-lg transition"
           >
-            Xác nhận
+            Confirm
           </button>
         </div>
       </div>

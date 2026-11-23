@@ -18,11 +18,18 @@ function GameContent() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const spinRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [bgImage, setBgImage] = useState("");
+  const [eventTitle, setEventTitle] = useState("");
+
   useEffect(() => {
     const cfg = localStorage.getItem("lucky_config");
     if (cfg) setConfig(JSON.parse(cfg));
     const emp = localStorage.getItem("lucky_employees");
     if (emp) setEmployees(JSON.parse(emp));
+    const bg = localStorage.getItem("lucky_bg");
+    if (bg) setBgImage(bg);
+    const title = localStorage.getItem("lucky_title");
+    if (title) setEventTitle(title);
   }, []);
 
   const [audioUnlocked, setAudioUnlocked] = useState(false);
@@ -94,17 +101,27 @@ function GameContent() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-yellow-950 flex flex-col" style={{ height: "100dvh" }} onClick={unlockAudio}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        height: "100dvh",
+        background: bgImage
+          ? `url('${bgImage}') center/cover no-repeat`
+          : undefined,
+      }}
+      onClick={unlockAudio}
+    >
+      {!bgImage && <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-red-900 to-yellow-950 -z-10" />}
       {/* Header */}
       <div className="text-center pt-6 pb-2">
-        <h1 className="text-4xl font-extrabold text-yellow-400 tracking-widest drop-shadow">🎊 LUCKY DRAW 🎊</h1>
-        {spinning && <p className="text-yellow-300 animate-pulse mt-1">Đang quay số...</p>}
+        <h1 className="text-4xl font-extrabold text-yellow-400 tracking-widest drop-shadow">🎊 {eventTitle || "LUCKY DRAW"} 🎊</h1>
+        {spinning && <p className="text-yellow-300 animate-pulse mt-1">Drawing...</p>}
         {!spinning && winners.length > 0 && (
           <p className="text-yellow-300 font-bold mt-1 text-xl">🏆 {roundLabel}</p>
         )}
         {!spinning && winners.length === 0 && (
           <p className="text-yellow-600 mt-1 text-sm">
-            {audioUnlocked ? "Chờ lệnh từ Start page..." : "👆 Click vào màn hình để bật âm thanh"}
+            {audioUnlocked ? "Waiting for Start..." : "👆 Click anywhere to enable sound"}
           </p>
         )}
       </div>
@@ -126,7 +143,7 @@ function GameContent() {
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-yellow-600">
-            Chưa có danh sách nhân viên. Vào Admin để upload.
+            No employee data. Go to Admin to upload.
           </div>
         )}
       </div>
@@ -138,9 +155,9 @@ function GameContent() {
             <div key={i} className="bg-yellow-400 rounded-2xl px-6 py-4 flex flex-col items-center shadow-2xl border-4 border-yellow-200 animate-bounce">
               <div className="text-3xl mb-1">🎉</div>
               <div className="text-gray-900 font-extrabold text-lg text-center">{w[config.nameColumn]}</div>
-              <div className="text-gray-700 text-sm">{w[config.idColumn]}</div>
+              {config.nameColumn !== config.idColumn && <div className="text-gray-700 text-sm">{w[config.idColumn]}</div>}
               {config.displayColumns.filter(c => c !== config.nameColumn && c !== config.idColumn).map(col => (
-                <div key={col} className="text-gray-600 text-xs mt-0.5">{col}: {w[col]}</div>
+                <div key={col} className="text-gray-600 text-xs mt-0.5">{w[col]}</div>
               ))}
             </div>
           ))}

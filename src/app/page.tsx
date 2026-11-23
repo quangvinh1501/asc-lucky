@@ -41,7 +41,7 @@ function StartContent() {
           >
             {rounds.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.label} ({r.count} người)
+                {r.label} ({r.count} winner{r.count > 1 ? "s" : ""})
               </option>
             ))}
           </select>
@@ -54,9 +54,9 @@ function StartContent() {
         </div>
       ) : (
         <div className="text-yellow-200 text-center">
-          <p className="text-xl">Chưa có cấu hình.</p>
+          <p className="text-xl">No configuration found.</p>
           <a href="/admin" className="mt-4 underline text-yellow-400 text-lg">
-            Vào Admin để cấu hình
+            Go to Admin to configure
           </a>
         </div>
       )}
