@@ -118,7 +118,7 @@ function GameContent() {
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col relative"
       style={{
         height: "100dvh",
         background: bgImage
@@ -130,7 +130,7 @@ function GameContent() {
       {!bgImage && <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-red-900 to-yellow-950 -z-10" />}
       {/* Header */}
       <div className="text-center pt-6 pb-2">
-        <h1 className="text-4xl font-extrabold text-yellow-400 tracking-widest drop-shadow">🎊 {eventTitle || "LUCKY DRAW"} 🎊</h1>
+        <h1 className="text-4xl font-extrabold text-yellow-400 tracking-widest drop-shadow">{eventTitle || "LUCKY DRAW"}</h1>
         {spinning && <p className="text-yellow-300 animate-pulse mt-1">Drawing...</p>}
         {!spinning && winners.length > 0 && (
           <p className="text-yellow-300 font-bold mt-1 text-xl">🏆 {roundLabel}</p>
@@ -166,11 +166,11 @@ function GameContent() {
         )}
       </div>
 
-      {/* Winner cards */}
+      {/* Winner cards - absolute overlay at bottom */}
       {!spinning && winners.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-4 p-6">
+        <div className="absolute bottom-0 left-0 right-0 flex flex-wrap justify-center gap-4 p-6 z-10">
           {winners.map((w, i) => (
-            <div key={i} className="bg-yellow-400 rounded-2xl px-6 py-4 flex flex-col items-center shadow-2xl border-4 border-yellow-200 animate-bounce">
+            <div key={i} className="bg-yellow-400 rounded-2xl px-6 py-4 flex flex-col items-center shadow-2xl border-4 border-yellow-200">
               <div className="text-3xl mb-1">🎉</div>
               <div className="text-gray-900 font-extrabold text-lg text-center">{w[config.nameColumn]}</div>
               {config.nameColumn !== config.idColumn && <div className="text-gray-700 text-sm">{w[config.idColumn]}</div>}

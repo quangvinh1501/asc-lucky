@@ -86,4 +86,33 @@ app.prepare().then(() => {
   server.listen(port, () => {
     console.log(`> Ready on ${dev ? "http" : "https"}://localhost:${port}`);
   });
+
+  // internal broadcast HTTP server on port 3001 (local dev only)
+  if (dev) {
+    const { createServer: createHttpServer } = require("http");
+    const broadcastServer = createHttpServer((req: import("http").IncomingMessage, res: import("http").ServerResponse) => {
+      if (req.method === "POST" && req.url === "/broadcast") {
+        let body = "";
+        req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+        req.on("end", () => {
+          try {
+            const { channel, data } = JSON.parse(body);
+            channels.get(channel)?.forEach((client) => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(data));
+              }
+            });
+          } catch {}
+          res.writeHead(200);
+          res.end('{"ok":true}');
+        });
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+    broadcastServer.listen(3001, () => {
+      console.log("> WS broadcast server on http://localhost:3001");
+    });
+  }
 });
