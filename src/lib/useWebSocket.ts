@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useCallback } from "react";
+import PusherClient from "pusher-js";
 import type { WSMessage } from "./types";
 
 const USE_PUSHER = process.env.NEXT_PUBLIC_USE_PUSHER === "true";
@@ -15,10 +16,7 @@ export function useWebSocket(
     if (!channel) return;
 
     if (USE_PUSHER) {
-      // Pusher mode
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const Pusher = require("pusher-js").default;
-      const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
       });
       const ch = pusher.subscribe(`lucky-${channel}`);
